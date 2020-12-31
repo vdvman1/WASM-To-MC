@@ -3,7 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WASM-To-MC", "WASM-To-MC\WASM-To-MC.csproj", "{D54C4B94-BEDE-484A-BA5B-5F5BD28FFA22}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WASM-To-MC", "WASM-To-MC\WASM-To-MC.csproj", "{D54C4B94-BEDE-484A-BA5B-5F5BD28FFA22}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WASM-To-MC.Parsing", "Parsing\WASM-To-MC.Parsing.csproj", "{9B0B1312-8864-4C10-A43A-A0FCF2A39406}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WASM-To-MC.Shared", "WASM-To-MC.Shared\WASM-To-MC.Shared.csproj", "{544DC057-29DF-4E3B-947A-5B0721D64EAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WASM-To-MC.Test", "WASM-To-MC.Parsing.Test\WASM-To-MC.Test.csproj", "{CD7396E9-F62D-4736-A895-E5764692AAE7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
