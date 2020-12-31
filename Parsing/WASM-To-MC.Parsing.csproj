@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>WASM-To-MC.Parsing</AssemblyName>
+    <RootNamespace>WASM-To-MC.Parsing</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WASM-To-MC.Shared\WASM-To-MC.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
