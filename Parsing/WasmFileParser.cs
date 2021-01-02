@@ -118,5 +118,17 @@ namespace WASM_To_MC.Parsing
 
             return arr;
         }
+
+        internal string Name()
+        {
+            try
+            {
+                return Encoding.UTF8.GetString(Vector(NextByte));
+            }
+            catch (Exception e) when (e is not ParseException)
+            {
+                throw new ParseException("Invalid name, see inner exception for details", e);
+            }
+        }
     }
 }

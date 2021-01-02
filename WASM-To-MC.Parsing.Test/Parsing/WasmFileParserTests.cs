@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using WASM_To_MC.Parsing;
 using WASM_To_MC.Shared;
 using Xunit;
@@ -145,6 +147,19 @@ namespace WASM_To_MC.Test.Test.Parsing
             var values = parser.Vector(() => parser.LEB128(new UByte(8))).Select(b => b.Value);
             Assert.Equal(result, values);
             Assert.Equal(input.Length, parser.Index);
+        }
+
+        [Theory]
+        [InlineData("ab")]
+        [InlineData("€")]
+        public void Name(string result)
+        {
+            var bytes = Encoding.UTF8.GetBytes(result);
+            bytes = bytes.Prepend((byte)bytes.Length).ToArray();
+            var parser = new WasmFileParser(bytes);
+            var val = parser.Name();
+            Assert.Equal(result, val);
+            Assert.Equal(bytes.Length, parser.Index);
         }
     }
 }

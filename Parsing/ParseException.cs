@@ -9,5 +9,7 @@ namespace WASM_To_MC.Parsing
     public class ParseException : Exception
     {
         public ParseException(string msg) : base(msg) { }
+
+        public ParseException(string msg, Exception inner) : base(msg, inner) { }
     }
 }
