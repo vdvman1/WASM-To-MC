@@ -17,6 +17,11 @@ namespace WASM_To_MC.Parsing
             Bytes = bytes;
         }
 
+        /// <summary>
+        /// Attempt to read the next byte
+        /// </summary>
+        /// <param name="b">Byte that was read, left unchanged if <code>false</code> is returned</param>
+        /// <returns>Whether a byte was read or not</returns>
         internal bool TryNextByte(out byte b)
         {
             if (Index >= Bytes.Length)
@@ -31,6 +36,11 @@ namespace WASM_To_MC.Parsing
             return true;
         }
 
+        /// <summary>
+        /// Read the next byte, throws a <see cref="ParseException"/> if no byte could be read
+        /// </summary>
+        /// <returns>The byte that was read</returns>
+        /// <exception cref="ParseException">No byte could be read</exception>
         internal byte NextByte()
         {
             if (TryNextByte(out byte b))
@@ -41,7 +51,13 @@ namespace WASM_To_MC.Parsing
             throw new ParseException("Unexpected end of file");
         }
 
-        // Handles both signed and unsigned
+        /// <summary>
+        /// Read a numeric value encoded in LEB128 format
+        /// </summary>
+        /// <typeparam name="T">The type of numeric value to read</typeparam>
+        /// <param name="int">An arbitrary value of the numeric type, used to specify the bitwidth. The actual value is not used</param>
+        /// <returns>The read numeric value</returns>
+        /// <exception cref="ParseException">The encoded value is invalid for the specified type <typeparamref name="T"/></exception>
         internal T LEB128<T>(T @int)
             where T : struct, IInteger<T>
         {
