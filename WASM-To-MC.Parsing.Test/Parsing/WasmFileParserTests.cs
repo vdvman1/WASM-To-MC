@@ -52,60 +52,78 @@ namespace WASM_To_MC.Test.Test.Parsing
         }
 
         [Theory]
-        [InlineData(new byte[] { 0b01111111             }, (byte)0b01111111)]
-        [InlineData(new byte[] { 0b11111111, 0b00000000 }, (byte)0b01111111)]
-        [InlineData(new byte[] { 0b10000000, 0b00000001 }, (byte)0b10000000)]
-        [InlineData(new byte[] { 0b10001010, 0b00000001 }, (byte)0b10001010)]
-        [InlineData(new byte[] { 0b11111111, 0b00000001 }, (byte)0b11111111)]
+        [InlineData(new byte[] { 0b0_1111111              }, (byte)0b0_1111111)]
+        [InlineData(new byte[] { 0b1_1111111, 0b0_0000000 }, (byte)0b0_1111111)]
+        [InlineData(new byte[] { 0b1_0000000, 0b0_0000001 }, (byte)0b1_0000000)]
+        [InlineData(new byte[] { 0b1_0001010, 0b0_0000001 }, (byte)0b1_0001010)]
+        [InlineData(new byte[] { 0b1_1111111, 0b0_0000001 }, (byte)0b1_1111111)]
         public void ULEB128ValidByte(byte[] input, byte result)
         {
             var parser = new WasmFileParser(input);
-            var @int = parser.ULEB128(new UByte(8));
+            var @int = parser.LEB128(new UByte(8));
             Assert.Equal(result, @int.Value);
             Assert.Equal(input.Length, parser.Index);
         }
 
         [Theory]
-        [InlineData(new byte[] { 0b11111111, 0b00000010 })]
-        [InlineData(new byte[] { 0b10000000, 0b10000000 })]
-        [InlineData(new byte[] { 0b10001010, 0b00010001 })]
-        [InlineData(new byte[] { 0b10000000, 0b00000010 })]
+        [InlineData(new byte[] { 0b1_1111111, 0b0_0000010 })]
+        [InlineData(new byte[] { 0b1_0000000, 0b1_0000000 })]
+        [InlineData(new byte[] { 0b1_0001010, 0b0_0010001 })]
+        [InlineData(new byte[] { 0b1_0000000, 0b0_0000010 })]
         public void ULEB128TooLargeByte(byte[] input)
         {
             Assert.Throws<ParseException>(() =>
             {
                 var parser = new WasmFileParser(input);
-                _ = parser.ULEB128(new UByte(8));
+                _ = parser.LEB128(new UByte(8));
             });
         }
 
         [Theory]
-        [InlineData(new byte[] { 0b01111111                         }, (ushort)0b0000000001111111)]
-        [InlineData(new byte[] { 0b11111111, 0b00000000             }, (ushort)0b0000000001111111)]
-        [InlineData(new byte[] { 0b10000000, 0b00000001             }, (ushort)0b0000000010000000)]
-        [InlineData(new byte[] { 0b10001010, 0b00000001             }, (ushort)0b0000000010001010)]
-        [InlineData(new byte[] { 0b10001010, 0b00010001             }, (ushort)0b0000100010001010)]
-        [InlineData(new byte[] { 0b10001010, 0b10010001, 0b00000010 }, (ushort)0b1000100010001010)]
-        [InlineData(new byte[] { 0b11111111, 0b11111111, 0b00000011 }, (ushort)0b1111111111111111)]
+        [InlineData(new byte[] { 0b0_1111111                           }, (ushort)0b00_0000000_1111111)]
+        [InlineData(new byte[] { 0b1_1111111, 0b0_0000000              }, (ushort)0b00_0000000_1111111)]
+        [InlineData(new byte[] { 0b1_0000000, 0b0_0000001              }, (ushort)0b00_0000001_0000000)]
+        [InlineData(new byte[] { 0b1_0001010, 0b0_0000001              }, (ushort)0b00_0000001_0001010)]
+        [InlineData(new byte[] { 0b1_0001010, 0b0_0010001              }, (ushort)0b00_0010001_0001010)]
+        [InlineData(new byte[] { 0b1_0001010, 0b1_0010001, 0b0_0000010 }, (ushort)0b10_0010001_0001010)]
+        [InlineData(new byte[] { 0b1_1111111, 0b1_1111111, 0b0_0000011 }, (ushort)0b11_1111111_1111111)]
         public void ULEB128ValidShort(byte[] input, ushort result)
         {
             var parser = new WasmFileParser(input);
-            var @int = parser.ULEB128(new UShort(16));
+            var @int = parser.LEB128(new UShort(16));
             Assert.Equal(result, @int.Value);
             Assert.Equal(input.Length, parser.Index);
         }
 
         [Theory]
-        [InlineData(new byte[] { 0b10001010, 0b10010001, 0b01000010 })]
-        [InlineData(new byte[] { 0b10000000, 0b10000000, 0b00000100 })]
-        [InlineData(new byte[] { 0b10000000, 0b10000000, 0b10000000 })]
+        [InlineData(new byte[] { 0b1_0001010, 0b1_0010001, 0b0_1000010 })]
+        [InlineData(new byte[] { 0b1_0000000, 0b1_0000000, 0b0_0000100 })]
+        [InlineData(new byte[] { 0b1_0000000, 0b1_0000000, 0b1_0000000 })]
         public void ULEB128TooLargeShort(byte[] input)
         {
             Assert.Throws<ParseException>(() =>
             {
                 var parser = new WasmFileParser(input);
-                _ = parser.ULEB128(new UShort(16));
+                _ = parser.LEB128(new UShort(16));
             });
+        }
+
+        [Theory]
+        [InlineData(new byte[] { 0b0_1111111                           }, unchecked((short)0b11_1111111_1111111))]
+        [InlineData(new byte[] { 0b1_1111111, 0b0_0000000              }, unchecked((short)0b00_0000000_1111111))]
+        [InlineData(new byte[] { 0b1_0000000, 0b0_0000001              }, unchecked((short)0b00_0000001_0000000))]
+        [InlineData(new byte[] { 0b1_0000000, 0b0_1000001              }, unchecked((short)0b11_1000001_0000000))]
+        [InlineData(new byte[] { 0b1_0001010, 0b0_0000001              }, unchecked((short)0b00_0000001_0001010))]
+        [InlineData(new byte[] { 0b1_1111111, 0b0_0000001              }, unchecked((short)0b00_0000001_1111111))]
+        [InlineData(new byte[] { 0b1_0001010, 0b1_0010001, 0b0_0000010 }, unchecked((short)0b10_0010001_0001010))]
+        [InlineData(new byte[] { 0b1_0001010, 0b1_0010001, 0b0_0000001 }, unchecked((short)0b01_0010001_0001010))]
+        [InlineData(new byte[] { 0b1_1111111, 0b1_1111111, 0b0_0000011 }, unchecked((short)0b11_1111111_1111111))]
+        public void ULEB128ValidSShort(byte[] input, short result)
+        {
+            var parser = new WasmFileParser(input);
+            var @int = parser.LEB128(new SShort(16));
+            Assert.Equal(result, @int.Value);
+            Assert.Equal(input.Length, parser.Index);
         }
     }
 }

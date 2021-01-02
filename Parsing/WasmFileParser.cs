@@ -41,7 +41,8 @@ namespace WASM_To_MC.Parsing
             throw new ParseException("Unexpected end of file");
         }
 
-        internal T ULEB128<T>(T @int)
+        // Handles both signed and unsigned
+        internal T LEB128<T>(T @int)
             where T : struct, IInteger<T>
         {
             const byte bit8 = 1 << 7;
@@ -57,7 +58,15 @@ namespace WASM_To_MC.Parsing
                     val = val.Or(@int.From(magnitude).LShift((byte)(@int.Bits - bits)));
                     if(b < bit8)
                     {
-                        return val;
+                        if (bits <= 7)
+                        {
+                            return val;
+                        }
+                        else
+                        {
+                            bits -= 7;
+                            return val.LShift(bits).RShift(bits); // Sign extend if signed
+                        }
                     }
                     else if(bits <= 7) // Don't consume more input than the maximum to ensure a proper error message is produced even when at the end of the input
                     {

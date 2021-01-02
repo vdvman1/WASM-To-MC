@@ -21,6 +21,8 @@ namespace WASM_To_MC.Shared
 
         public TSelf LShift(byte amount);
 
+        public TSelf RShift(byte amount);
+
         public byte this[byte i] { get; }
     }
 
@@ -62,7 +64,53 @@ namespace WASM_To_MC.Shared
 
         public UByte LShift(byte amount) => new(Bits, value: (byte)((Value << amount) & Max.Value));
 
-        public UByte Or(UByte other) => new(Bits, value: (byte)(Value | other.Value));
+        public UByte RShift(byte amount) => new(Bits, value: (byte)(Value >> amount));
+
+        public UByte Or(UByte other) => new(Bits, value: (byte)((Value | other.Value) & Max.Value));
+    }
+
+    public struct SByte : IInteger<SByte, sbyte>
+    {
+        public byte Bits { get; }
+
+        private static sbyte MaxValue(byte bits) => (sbyte)((1 << (bits - 1)) - 1);
+
+        public SByte Max => new(Bits, value: MaxValue(Bits));
+
+        private sbyte value;
+        public sbyte Value
+        {
+            get => value;
+            set => this.value = DiscardExcessBits(value, Bits);
+        }
+
+        public SByte(byte bits, sbyte value = 0)
+        {
+            Bits = Math.Min(bits, (byte)8);
+            this.value = DiscardExcessBits(value, bits);
+        }
+
+        public byte UsedBits => (byte)(8 - BitOperations.LeadingZeroCount((uint)Value));
+
+        public byte this[byte i] => i == 0 ? (byte)value : 0;
+
+        public int CompareTo(SByte other) => Value.CompareTo(other.Value);
+
+        public SByte From(byte b) => new(Bits, (sbyte)b);
+
+        private static sbyte DiscardExcessBits(int val, byte bits)
+        {
+            var max = MaxValue(bits);
+            var newVal = val & max;
+            // If highest bit set, sign extend
+            return (val & (1 << bits)) == 0 ? (sbyte)newVal : (sbyte)(newVal | ~max);
+        }
+
+        public SByte LShift(byte amount) => new(Bits, value: DiscardExcessBits(Value << amount, Bits));
+
+        public SByte RShift(byte amount) => new(Bits, value: (sbyte)(Value >> amount));
+
+        public SByte Or(SByte other) => new(Bits, value: DiscardExcessBits(Value | other.Value, Bits));
     }
 
     public struct UShort : IInteger<UShort, ushort>
@@ -96,6 +144,52 @@ namespace WASM_To_MC.Shared
 
         public UShort LShift(byte amount) => new(Bits, value: (ushort)((Value << amount) & Max.Value));
 
-        public UShort Or(UShort other) => new(Bits, value: (ushort)(Value | other.Value));
+        public UShort RShift(byte amount) => new(Bits, value: (ushort)(Value >> amount));
+
+        public UShort Or(UShort other) => new(Bits, value: (ushort)((Value | other.Value) & Max.Value));
+    }
+
+    public struct SShort : IInteger<SShort, short>
+    {
+        public byte Bits { get; }
+
+        private static short MaxValue(byte bits) => (short)((1 << (bits - 1)) - 1);
+
+        public SShort Max => new(Bits, value: MaxValue(Bits));
+
+        private short value;
+        public short Value
+        {
+            get => value;
+            set => this.value = DiscardExcessBits(value, Bits);
+        }
+
+        public SShort(byte bits, short value = 0)
+        {
+            Bits = Math.Min(bits, (byte)16);
+            this.value = DiscardExcessBits(value, bits);
+        }
+
+        public byte UsedBits => (byte)(16 - BitOperations.LeadingZeroCount((uint)Value));
+
+        public byte this[byte i] => i == 0 ? (byte)value : 0;
+
+        public int CompareTo(SShort other) => Value.CompareTo(other.Value);
+
+        public SShort From(byte b) => new(Bits, b);
+
+        private static short DiscardExcessBits(int val, byte bits)
+        {
+            var max = MaxValue(bits);
+            var newVal = val & max;
+            // If highest bit set, sign extend
+            return (val & (1 << (bits - 1))) == 0 ? (short)newVal : (short)(newVal | ~max);
+        }
+
+        public SShort LShift(byte amount) => new(Bits, value: DiscardExcessBits(Value << amount, Bits));
+
+        public SShort RShift(byte amount) => new(Bits, value: (short)(Value >> amount));
+
+        public SShort Or(SShort other) => new(Bits, value: DiscardExcessBits(Value | other.Value, Bits));
     }
 }
