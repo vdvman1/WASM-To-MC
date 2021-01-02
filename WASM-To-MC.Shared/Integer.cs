@@ -11,18 +11,49 @@ namespace WASM_To_MC.Shared
     public interface IInteger<TSelf> : IComparable<TSelf>
         where TSelf: struct, IInteger<TSelf>
     {
+        /// <summary>
+        /// The actual bit width of the value. Must be less than or equal to the bit width of the underlying storage
+        /// </summary>
         public byte Bits { get; }
-        public TSelf Max { get; }
-        public byte UsedBits { get; }
 
+        /// <summary>
+        /// The maximum value that can be stored by an integer of this type, dependent on <see cref="Bits"/>
+        /// </summary>
+        public TSelf Max { get; }
+
+        /// <summary>
+        /// Get a value of this type with a matching bit width using the value of <paramref name="b"/>, truncating any extra bits
+        /// </summary>
+        /// <param name="b">Byte to convert to this type</param>
+        /// <returns>A value of this type with a matching bit width and a value of <paramref name="b"/>, truncating any extra bits</returns>
         public TSelf From(byte b);
 
+        /// <summary>
+        /// Calculate the bitwise OR of this and <paramref name="other"/>, keeping the bit width of this and truncating any extra bits
+        /// </summary>
+        /// <param name="other">Value to bitwise OR with this</param>
+        /// <returns>bitwise OR of this and <paramref name="other"/>, keeping the bit width of this and truncating any extra bits</returns>
         public TSelf Or(TSelf other);
 
+        /// <summary>
+        /// Shift this to the left by <paramref name="amount"/> bits, dropping any extra bits
+        /// </summary>
+        /// <param name="amount">Number of bits to shift by</param>
+        /// <returns>The value of this shifted to the left by <paramref name="amount"/> bits, dropping any extra bits</returns>
         public TSelf LShift(byte amount);
 
+        /// <summary>
+        /// Shift this to the right by <paramref name="amount"/> bits, dropping any extra bits
+        /// </summary>
+        /// <param name="amount">Number of bits to shift by</param>
+        /// <returns>The value of this shifted to the right by <paramref name="amount"/> bits, dropping any extra bits</returns>
         public TSelf RShift(byte amount);
 
+        /// <summary>
+        /// Get the byte with bits from <code><paramref name="i"/> * 8</code> to <code><paramref name="i"/> * 8 + 7</code>
+        /// </summary>
+        /// <param name="i">Which byte to get</param>
+        /// <returns>The byte at index <paramref name="i"/>, or 0 if outside the range of this</returns>
         public byte this[byte i] { get; }
     }
 
@@ -53,8 +84,6 @@ namespace WASM_To_MC.Shared
             Bits = Math.Min(bits, (byte)8);
             this.value = Math.Min(value, MaxValue(bits));
         }
-
-        public byte UsedBits => (byte)(8 - BitOperations.LeadingZeroCount(Value));
 
         public byte this[byte i] => i == 0 ? value : 0;
 
@@ -90,14 +119,19 @@ namespace WASM_To_MC.Shared
             this.value = DiscardExcessBits(value, bits);
         }
 
-        public byte UsedBits => (byte)(8 - BitOperations.LeadingZeroCount((uint)Value));
-
         public byte this[byte i] => i == 0 ? (byte)value : 0;
 
         public int CompareTo(SByte other) => Value.CompareTo(other.Value);
 
         public SByte From(byte b) => new(Bits, (sbyte)b);
 
+        /// <summary>
+        /// Keep only the lower <paramref name="bits"/> bits of <paramref name="val"/> and cast to <see cref="sbyte"/>
+        /// Performs sign extension with the highest used bit
+        /// </summary>
+        /// <param name="val">Value to truncate</param>
+        /// <param name="bits">Number of bits to keep</param>
+        /// <returns>The truncated value, sign extended</returns>
         private static sbyte DiscardExcessBits(int val, byte bits)
         {
             var max = MaxValue(bits);
@@ -134,8 +168,6 @@ namespace WASM_To_MC.Shared
             this.value = Math.Min(value, MaxValue(bits));
         }
 
-        public byte UsedBits => (byte)(16 - BitOperations.LeadingZeroCount(Value));
-
         public byte this[byte i] => (byte)(value >> (i * 8));
 
         public int CompareTo(UShort other) => Value.CompareTo(other.Value);
@@ -170,14 +202,19 @@ namespace WASM_To_MC.Shared
             this.value = DiscardExcessBits(value, bits);
         }
 
-        public byte UsedBits => (byte)(16 - BitOperations.LeadingZeroCount((uint)Value));
-
         public byte this[byte i] => i == 0 ? (byte)value : 0;
 
         public int CompareTo(SShort other) => Value.CompareTo(other.Value);
 
         public SShort From(byte b) => new(Bits, b);
 
+        /// <summary>
+        /// Keep only the lower <paramref name="bits"/> bits of <paramref name="val"/> and cast to <see cref="short"/>
+        /// Performs sign extension with the highest used bit
+        /// </summary>
+        /// <param name="val">Value to truncate</param>
+        /// <param name="bits">Number of bits to keep</param>
+        /// <returns>The truncated value, sign extended</returns>
         private static short DiscardExcessBits(int val, byte bits)
         {
             var max = MaxValue(bits);
