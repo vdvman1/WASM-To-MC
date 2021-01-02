@@ -125,5 +125,15 @@ namespace WASM_To_MC.Test.Test.Parsing
             Assert.Equal(result, @int.Value);
             Assert.Equal(input.Length, parser.Index);
         }
+
+        [Theory]
+        [InlineData(new byte[] { 0b00000000, 0b00000000, 0b01000110, 0b01000001 }, 12.375f)]
+        public void Float(byte[] input, float result)
+        {
+            var parser = new WasmFileParser(input);
+            var @float = parser.Float(new Float32());
+            Assert.Equal(result, @float.Value);
+            Assert.Equal(input.Length, parser.Index);
+        }
     }
 }

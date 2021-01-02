@@ -51,6 +51,8 @@ namespace WASM_To_MC.Parsing
             throw new ParseException("Unexpected end of file");
         }
 
+        internal IEnumerable<byte> NextBytes(int count) => Enumerable.Range(0, count).Select(_ => NextByte());
+
         /// <summary>
         /// Read a numeric value encoded in LEB128 format
         /// </summary>
@@ -100,5 +102,9 @@ namespace WASM_To_MC.Parsing
 
             return val;
         }
+
+        internal T Float<T>(T @float)
+            where T : IFloatingPoint<T>
+            => @float.FromBytesLE(NextBytes(@float.Bytes));
     }
 }
