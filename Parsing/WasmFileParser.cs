@@ -106,5 +106,17 @@ namespace WASM_To_MC.Parsing
         internal T Float<T>(T @float)
             where T : IFloatingPoint<T>
             => @float.FromBytesLE(NextBytes(@float.Bytes));
+
+        internal T[] Vector<T>(Func<T> valueParser)
+        {
+            uint length = LEB128(new UInt(32)).Value;
+            var arr = new T[length];
+            for (int i = 0; i < length; i++)
+            {
+                arr[i] = valueParser();
+            }
+
+            return arr;
+        }
     }
 }

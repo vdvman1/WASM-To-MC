@@ -228,4 +228,38 @@ namespace WASM_To_MC.Shared
 
         public SShort Or(SShort other) => new(Bits, value: DiscardExcessBits(Value | other.Value, Bits));
     }
+
+    public struct UInt : IInteger<UInt, uint>
+    {
+        public byte Bits { get; }
+
+        private static uint MaxValue(byte bits) => (uint)((1L << bits) - 1);
+
+        public UInt Max => new(Bits, value: MaxValue(Bits));
+
+        private uint value;
+        public uint Value
+        {
+            get => value;
+            set => this.value = Math.Min(value, Max.Value);
+        }
+
+        public UInt(byte bits, uint value = 0)
+        {
+            Bits = Math.Min(bits, (byte)32);
+            this.value = Math.Min(value, MaxValue(bits));
+        }
+
+        public byte this[byte i] => (byte)(value >> (i * 8));
+
+        public int CompareTo(UInt other) => Value.CompareTo(other.Value);
+
+        public UInt From(byte b) => new(Bits, b);
+
+        public UInt LShift(byte amount) => new(Bits, value: (Value << amount) & Max.Value);
+
+        public UInt RShift(byte amount) => new(Bits, value: Value >> amount);
+
+        public UInt Or(UInt other) => new(Bits, value: (Value | other.Value) & Max.Value);
+    }
 }

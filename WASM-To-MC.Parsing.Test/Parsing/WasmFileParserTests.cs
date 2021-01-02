@@ -135,5 +135,16 @@ namespace WASM_To_MC.Test.Test.Parsing
             Assert.Equal(result, @float.Value);
             Assert.Equal(input.Length, parser.Index);
         }
+
+        [Theory]
+        [InlineData(new byte[] { 2, 12, 10 }, new byte[2] { 12, 10 })]
+        [InlineData(new byte[] { 2, 0b1_0000000, 0b0_0000001, 10 }, new byte[2] { 0b1_0000000, 10 })]
+        public void VecUByte(byte[] input, byte[] result)
+        {
+            var parser = new WasmFileParser(input);
+            var values = parser.Vector(() => parser.LEB128(new UByte(8))).Select(b => b.Value);
+            Assert.Equal(result, values);
+            Assert.Equal(input.Length, parser.Index);
+        }
     }
 }
