@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace WASM_To_MC.Shared
 {
     public interface IInteger<TSelf> : IComparable<TSelf>
-        where TSelf: struct, IInteger<TSelf>
+        where TSelf: IInteger<TSelf>
     {
         /// <summary>
         /// The actual bit width of the value. Must be less than or equal to the bit width of the underlying storage
@@ -58,8 +58,7 @@ namespace WASM_To_MC.Shared
     }
 
     public interface IInteger<TSelf, TInt> : IInteger<TSelf>
-        where TSelf : struct, IInteger<TSelf, TInt>
-        where TInt : struct
+        where TSelf : IInteger<TSelf, TInt>
     {
         public TInt Value { get; }
     }
