@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using WASM_To_MC;
+using WASM_To_MC.Parsing.Binary;
 
 if (Arguments.Parse(args) is not Arguments arguments)
 {
@@ -24,3 +25,7 @@ catch (Exception e)
     Console.WriteLine(e);
     return;
 }
+
+Console.WriteLine("Parsing WASM binary");
+var module = new WasmFileParser(bytes).Parse();
+Console.WriteLine($"Finished parsing WASM binary");

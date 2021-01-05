@@ -3,7 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>WASM-To-MC.Parsing</AssemblyName>
-    <RootNamespace>WASM-To-MC.Parsing</RootNamespace>
+    <RootNamespace>WASM_To_MC.Parsing</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -16,6 +16,8 @@ namespace WASM_To_MC.Shared
         /// </summary>
         public byte Bits { get; }
 
+        public bool Signed { get; }
+
         /// <summary>
         /// The maximum value that can be stored by an integer of this type, dependent on <see cref="Bits"/>
         /// </summary>
@@ -67,6 +69,8 @@ namespace WASM_To_MC.Shared
     {
         public byte Bits { get; }
 
+        public bool Signed => false;
+
         private static byte MaxValue(byte bits) => (byte)((1 << bits) - 1);
 
         public UByte Max => new(Bits, value: MaxValue(Bits));
@@ -75,13 +79,13 @@ namespace WASM_To_MC.Shared
         public byte Value
         {
             get => value;
-            set => this.value = Math.Min(value, Max.Value);
+            set => this.value = (byte)(value & Max.Value);
         }
 
         public UByte(byte bits, byte value = 0)
         {
             Bits = Math.Min(bits, (byte)8);
-            this.value = Math.Min(value, MaxValue(bits));
+            this.value = (byte)(value & MaxValue(bits));
         }
 
         public byte this[byte i] => i == 0 ? value : 0;
@@ -100,6 +104,8 @@ namespace WASM_To_MC.Shared
     public struct SByte : IInteger<SByte, sbyte>
     {
         public byte Bits { get; }
+
+        public bool Signed => true;
 
         private static sbyte MaxValue(byte bits) => (sbyte)((1 << (bits - 1)) - 1);
 
@@ -150,6 +156,8 @@ namespace WASM_To_MC.Shared
     {
         public byte Bits { get; }
 
+        public bool Signed => false;
+
         private static ushort MaxValue(byte bits) => (ushort)((1 << bits) - 1);
 
         public UShort Max => new(Bits, value: MaxValue(Bits));
@@ -158,13 +166,13 @@ namespace WASM_To_MC.Shared
         public ushort Value
         {
             get => value;
-            set => this.value = Math.Min(value, Max.Value);
+            set => this.value = (ushort)(value & Max.Value);
         }
 
         public UShort(byte bits, ushort value = 0)
         {
             Bits = Math.Min(bits, (byte)16);
-            this.value = Math.Min(value, MaxValue(bits));
+            this.value = (ushort)(value & MaxValue(bits));
         }
 
         public byte this[byte i] => (byte)(value >> (i * 8));
@@ -184,6 +192,8 @@ namespace WASM_To_MC.Shared
     {
         public byte Bits { get; }
 
+        public bool Signed => true;
+
         private static short MaxValue(byte bits) => (short)((1 << (bits - 1)) - 1);
 
         public SShort Max => new(Bits, value: MaxValue(Bits));
@@ -201,7 +211,7 @@ namespace WASM_To_MC.Shared
             this.value = DiscardExcessBits(value, bits);
         }
 
-        public byte this[byte i] => i == 0 ? (byte)value : 0;
+        public byte this[byte i] => (byte)(value >> (i * 8));
 
         public int CompareTo(SShort other) => Value.CompareTo(other.Value);
 
@@ -233,6 +243,8 @@ namespace WASM_To_MC.Shared
     {
         public byte Bits { get; }
 
+        public bool Signed => false;
+
         private static uint MaxValue(byte bits) => (uint)((1L << bits) - 1);
 
         public UInt Max => new(Bits, value: MaxValue(Bits));
@@ -241,13 +253,13 @@ namespace WASM_To_MC.Shared
         public uint Value
         {
             get => value;
-            set => this.value = Math.Min(value, Max.Value);
+            set => this.value = value & Max.Value;
         }
 
         public UInt(byte bits, uint value = 0)
         {
             Bits = Math.Min(bits, (byte)32);
-            this.value = Math.Min(value, MaxValue(bits));
+            this.value = value & MaxValue(bits);
         }
 
         public byte this[byte i] => (byte)(value >> (i * 8));
@@ -261,5 +273,143 @@ namespace WASM_To_MC.Shared
         public UInt RShift(byte amount) => new(Bits, value: Value >> amount);
 
         public UInt Or(UInt other) => new(Bits, value: (Value | other.Value) & Max.Value);
+    }
+
+    public struct SInt : IInteger<SInt, int>
+    {
+        public byte Bits { get; }
+
+        public bool Signed => true;
+
+        private static int MaxValue(byte bits) => (1 << (bits - 1)) - 1;
+
+        public SInt Max => new(Bits, value: MaxValue(Bits));
+
+        private int value;
+        public int Value
+        {
+            get => value;
+            set => this.value = DiscardExcessBits(value, Bits);
+        }
+
+        public SInt(byte bits, int value = 0)
+        {
+            Bits = Math.Min(bits, (byte)32);
+            this.value = DiscardExcessBits(value, bits);
+        }
+
+        public byte this[byte i] => (byte)(value >> (i * 8));
+
+        public int CompareTo(SInt other) => Value.CompareTo(other.Value);
+
+        public SInt From(byte b) => new(Bits, b);
+
+        /// <summary>
+        /// Keep only the lower <paramref name="bits"/> bits of <paramref name="val"/> and cast to <see cref="int"/>
+        /// Performs sign extension with the highest used bit
+        /// </summary>
+        /// <param name="val">Value to truncate</param>
+        /// <param name="bits">Number of bits to keep</param>
+        /// <returns>The truncated value, sign extended</returns>
+        private static int DiscardExcessBits(int val, byte bits)
+        {
+            var max = MaxValue(bits);
+            var newVal = val & max;
+            // If highest bit set, sign extend
+            return (val & (1 << (bits - 1))) == 0 ? newVal : (newVal | ~max);
+        }
+
+        public SInt LShift(byte amount) => new(Bits, value: DiscardExcessBits(Value << amount, Bits));
+
+        public SInt RShift(byte amount) => new(Bits, value: (short)(Value >> amount));
+
+        public SInt Or(SInt other) => new(Bits, value: DiscardExcessBits(Value | other.Value, Bits));
+    }
+
+    public struct ULong : IInteger<ULong, ulong>
+    {
+        public byte Bits { get; }
+
+        public bool Signed => false;
+
+        private static ulong MaxValue(byte bits) => bits == 64 ? ulong.MaxValue : ((1UL << bits) - 1);
+
+        public ULong Max => new(Bits, value: MaxValue(Bits));
+
+        private ulong value;
+        public ulong Value
+        {
+            get => value;
+            set => this.value = value & Max.Value;
+        }
+
+        public ULong(byte bits, ulong value = 0)
+        {
+            Bits = Math.Min(bits, (byte)64);
+            this.value = value & MaxValue(bits);
+        }
+
+        public byte this[byte i] => (byte)(value >> (i * 8));
+
+        public int CompareTo(ULong other) => Value.CompareTo(other.Value);
+
+        public ULong From(byte b) => new(Bits, b);
+
+        public ULong LShift(byte amount) => new(Bits, value: (Value << amount) & Max.Value);
+
+        public ULong RShift(byte amount) => new(Bits, value: Value >> amount);
+
+        public ULong Or(ULong other) => new(Bits, value: (Value | other.Value) & Max.Value);
+    }
+
+    public struct SLong : IInteger<SLong, long>
+    {
+        public byte Bits { get; }
+
+        public bool Signed => true;
+
+        private static long MaxValue(byte bits) => (1L << (bits - 1)) - 1;
+
+        public SLong Max => new(Bits, value: MaxValue(Bits));
+
+        private long value;
+        public long Value
+        {
+            get => value;
+            set => this.value = DiscardExcessBits(value, Bits);
+        }
+
+        public SLong(byte bits, long value = 0)
+        {
+            Bits = Math.Min(bits, (byte)64);
+            this.value = DiscardExcessBits(value, bits);
+        }
+
+        public byte this[byte i] => (byte)(value >> (i * 8));
+
+        public int CompareTo(SLong other) => Value.CompareTo(other.Value);
+
+        public SLong From(byte b) => new(Bits, b);
+
+        /// <summary>
+        /// Keep only the lower <paramref name="bits"/> bits of <paramref name="val"/> and cast to <see cref="long"/>
+        /// Performs sign extension with the highest used bit
+        /// </summary>
+        /// <param name="val">Value to truncate</param>
+        /// <param name="bits">Number of bits to keep</param>
+        /// <returns>The truncated value, sign extended</returns>
+        private static long DiscardExcessBits(long val, byte bits)
+        {
+            var max = MaxValue(bits);
+            var newVal = val & max;
+            // If highest bit set, sign extend
+            return (val & (1L << (bits - 1))) == 0 ? newVal : (newVal | ~max);
+        }
+
+        public SLong LShift(byte amount) => new(Bits, value: DiscardExcessBits(Value << amount, Bits));
+
+        public SLong RShift(byte amount) => new(Bits, value: (short)(Value >> amount));
+
+        public SLong Or(SLong other) => new(Bits, value: DiscardExcessBits(Value | other.Value, Bits));
     }
 }
